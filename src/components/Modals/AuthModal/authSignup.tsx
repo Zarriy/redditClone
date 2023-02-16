@@ -2,6 +2,9 @@ import { Button, Flex, Input, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useSetRecoilState } from "recoil";
 import { authModalState } from "@/src/atoms/authModalState";
+import { auth } from "../../../firebase/clientApp";
+import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const AuthSignUp: React.FC = () => {
   const [signUpValues, setSignUpValues] = useState({
@@ -9,13 +12,26 @@ const AuthSignUp: React.FC = () => {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
   const setAuthModalState = useSetRecoilState(authModalState);
+  const [createUserWithEmailAndPassword, user, loading, userError] =
+    useCreateUserWithEmailAndPassword(auth);
 
   const handleLoginInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSignUpValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  const formSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (signUpValues.password !== signUpValues.confirmPassword) {
+      setError("Password do not match");
+      return;
+    }
+    createUserWithEmailAndPassword(signUpValues.email, signUpValues.password);
+  };
+
   return (
-    <form>
+    <form onSubmit={formSubmitHandler}>
       <Input
         name="email"
         placeholder="email"
@@ -71,6 +87,7 @@ const AuthSignUp: React.FC = () => {
         value={signUpValues.confirmPassword}
         onChange={handleLoginInput}
       />
+      <Text>Error</Text>
       <Button type="submit" width="100%" mb={2} height="36px" mt={2}>
         Sign Up
       </Button>
@@ -90,5 +107,3 @@ const AuthSignUp: React.FC = () => {
     </form>
   );
 };
-
-export default AuthSignUp;
